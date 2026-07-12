@@ -51,8 +51,6 @@
         #panel-contexto-SP.panel-cerrado-SP {
             /* Lo subimos tanto que solo queda visible el botón toggle */
             transform: translateX(-50%) translateY(-265px) !important; 
-            /* Descomenta la siguiente línea si quieres que sea ligeramente transparente al estar cerrado */
-            /* opacity: 0.8; */
         }
         
         #panel-contexto-SP h2 { font-size: 1.1rem !important; }
@@ -60,13 +58,22 @@
         /* Carrusel más compacto en móvil */
         #carrusel-SP img { height: 110px !important; }
 
-        /* Ajuste de controles de Leaflet para móvil */
-        .leaflet-top.leaflet-left { top: 70px !important; } /* Un poco más abajo cuando está abierto */
-        
-        /* Efecto en controles cuando el panel se cierra */
-        #panel-contexto-SP.panel-cerrado-SP ~ #map .leaflet-top.leaflet-left {
-            top: 20px !important; /* Vuelven a subir si el panel no molesta */
+
+        /* === INICIO DE LAS REGLAS NUEVAS PARA LAS HERRAMIENTAS === */
+        /* Transición suave para TODOS los controles del mapa (Izquierda y Derecha) */
+        .leaflet-top.leaflet-left,
+        .leaflet-top.leaflet-right {
+            transition: top 0.4s ease !important;
+            top: 20px !important; /* Posición arriba cuando el panel está cerrado */
         }
+
+        /* Cuando el panel se abre, bajamos las herramientas para liberar el espacio */
+        body.panel-abierto-SP .leaflet-top.leaflet-left,
+        body.panel-abierto-SP .leaflet-top.leaflet-right {
+            top: 370px !important; /* Empuja las herramientas debajo del carrusel */
+        }
+        /* === FIN DE LAS REGLAS NUEVAS === */
+
 
         /* Mostrar y estilar el Botón de toggle en móvil */
         #toggle-tab-SP {
@@ -90,9 +97,54 @@
         }
         #toggle-tab-SP:hover { color: #1e3f28; }
     }
+    /* Animación de Latido SP */
+.marcador-latido-SP {
+    background-color: #2c7a3f; /* Verde característico */
+    border: 3px solid #ffffff;
+    border-radius: 50%;
+    box-shadow: 0 0 0 rgba(44, 122, 63, 0.4);
+    animation: latido-SP 1.5s infinite;
+}
+
+@keyframes latido-SP {
+    0% { box-shadow: 0 0 0 0 rgba(44, 122, 63, 0.7); }
+    70% { box-shadow: 0 0 0 15px rgba(44, 122, 63, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(44, 122, 63, 0); }
+}
+
+/* Animación de Ruta SP */
+.ruta-animada-SP {
+    stroke-dasharray: 12, 12; /* Tamaño de la línea y el espacio en blanco */
+    animation: movimiento-ruta-SP 1.5s linear infinite;
+}
+
+@keyframes movimiento-ruta-SP {
+    100% { stroke-dashoffset: -24; } /* Desplaza las líneas hacia adelante */
+}
 </style>
     </head>
     <body>
+        <!-- Botón GPS SP -->
+<button id="btn-gps-SP" style="
+    position: absolute;
+    bottom: 25px;
+    right: 15px;
+    z-index: 1000;
+    width: 45px;
+    height: 45px;
+    background-color: white;
+    border: none;
+    border-radius: 50%;
+    box-shadow: 0px 4px 10px rgba(0,0,0,0.3);
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5rem;
+    color: #2c7a3f;
+">
+    📍
+</button>
 <!-- PANTALLA DE CARGA (Splash Screen) -->
 <div id="splashScreen_SP" style="
     position: fixed; 
@@ -392,13 +444,15 @@
             layerName: 'layer_LodgeIntiAmanta_2',
             pane: 'pane_LodgeIntiAmanta_2',
             onEachFeature: pop_LodgeIntiAmanta_2,
-            pointToLayer: function (feature, latlng) {
-                var context = {
-                    feature: feature,
-                    variables: {}
-                };
-                return L.circleMarker(latlng, style_LodgeIntiAmanta_2_0(feature));
-            },
+            // Lógica lineal para reemplazar el ícono estático
+pointToLayer: function (feature, latlng) {
+    var iconoLatido_SP = L.divIcon({
+        className: 'marcador-latido-SP',
+        iconSize: [18, 18],
+        iconAnchor: [9, 9] // Centra exactamente el círculo en la coordenada
+    });
+    return L.marker(latlng, {icon: iconoLatido_SP});
+}
         });
         bounds_group.addLayer(layer_LodgeIntiAmanta_2);
         map.addLayer(layer_LodgeIntiAmanta_2);
@@ -537,13 +591,15 @@
             layerName: 'layer_puntos_interactivos_4',
             pane: 'pane_puntos_interactivos_4',
             onEachFeature: pop_puntos_interactivos_4,
-            pointToLayer: function (feature, latlng) {
-                var context = {
-                    feature: feature,
-                    variables: {}
-                };
-                return L.circleMarker(latlng, style_puntos_interactivos_4_0(feature));
-            },
+            // Lógica lineal para reemplazar el ícono estático
+pointToLayer: function (feature, latlng) {
+    var iconoLatido_SP = L.divIcon({
+        className: 'marcador-latido-SP',
+        iconSize: [18, 18],
+        iconAnchor: [9, 9] // Centra exactamente el círculo en la coordenada
+    });
+    return L.marker(latlng, {icon: iconoLatido_SP});
+}
         });
         bounds_group.addLayer(layer_puntos_interactivos_4);
         map.addLayer(layer_puntos_interactivos_4);
@@ -561,6 +617,7 @@
                 weight: 3.0,
                 fillOpacity: 0,
                 interactive: true,
+                className: 'ruta-animada-SP'
             }
         }
         map.createPane('pane_Sendero_5');
@@ -670,21 +727,68 @@
     var tab_SP = document.getElementById('toggle-tab-SP');
 
     // 2. Definir la función de toggle (procedural)
+    // Lógica Lineal SP: Acordeón Responsivo del Panel de Contexto
+(function() {
+    var panel_SP = document.getElementById('panel-contexto-SP');
+    var tab_SP = document.getElementById('toggle-tab-SP');
+
+    // Sincronizar el estado inicial al cargar la página
+    if (!panel_SP.classList.contains('panel-cerrado-SP')) {
+        document.body.classList.add('panel-abierto-SP');
+    }
+
     function togglePanel_SP() {
-        // Intercambiar la clase 'panel-cerrado-SP'. CSS hará la transición.
+        // Intercambiar la clase de la persiana
         panel_SP.classList.toggle('panel-cerrado-SP');
         
-        // Rotar la flecha para indicar dirección de apertura/cierre
+        // Verificación estructural del estado para animar botones e íconos
         if (panel_SP.classList.contains('panel-cerrado-SP')) {
-            tab_SP.innerHTML = '▼'; // Panel cerrado -> flecha hacia abajo (indica abrir)
+            tab_SP.innerHTML = '▼'; // Panel cerrado
+            document.body.classList.remove('panel-abierto-SP'); // Sube las herramientas
         } else {
-            tab_SP.innerHTML = '▲'; // Panel abierto -> flecha hacia arriba (indica cerrar)
+            tab_SP.innerHTML = '▲'; // Panel abierto
+            document.body.classList.add('panel-abierto-SP'); // Baja las herramientas
         }
     }
+
+    tab_SP.addEventListener('click', togglePanel_SP);
+})();
 
     // 3. Escuchar el evento de clic en el tab
     tab_SP.addEventListener('click', togglePanel_SP);
 })();
+
+// Variable para almacenar el marcador del usuario
+var marcadorUsuario_SP = null;
+
+// Ejecución directa de geolocalización
+document.getElementById('btn-gps-SP').addEventListener('click', function() {
+    // Llama al motor nativo de Leaflet para ubicar
+    map.locate({setView: true, maxZoom: 16});
+});
+
+// Evento que se dispara cuando el GPS encuentra la coordenada
+map.on('locationfound', function(e) {
+    // Si ya existe un marcador anterior, se elimina para no duplicar
+    if (marcadorUsuario_SP) {
+        map.removeLayer(marcadorUsuario_SP);
+    }
+    
+    // Se dibuja el punto azul del usuario
+    marcadorUsuario_SP = L.circleMarker(e.latlng, {
+        radius: 8,
+        fillColor: "#0078ff", // Azul GPS estándar
+        color: "#ffffff",
+        weight: 3,
+        opacity: 1,
+        fillOpacity: 0.8
+    }).addTo(map);
+});
+
+// Manejo de errores por si el usuario deniega el permiso
+map.on('locationerror', function(e) {
+    alert("No pudimos acceder a tu ubicación. Por favor, activa el GPS del navegador.");
+});
         </script>
                 
     </body>
