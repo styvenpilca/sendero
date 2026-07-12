@@ -22,32 +22,73 @@
         </style>
         <title></title>
         <style>
-    /* Diseño Responsivo SP */
+    /* Estilos Generales Responsivos (Lógica Lineal SP) */
+    
+    /* Estado inicial Desktop: Visible y fijo */
+    #panel-contexto-SP {
+        transition: transform 0.4s ease, opacity 0.4s ease;
+    }
+
+    /* Botón de toggle (Tab) - Oculto por defecto en Desktop */
+    #toggle-tab-SP {
+        display: none;
+    }
+
+    /* Reglas para Celulares */
     @media (max-width: 768px) {
+        /* Reubicación y stilos responsivos del panel */
         #panel-contexto-SP {
-            /* Centra el panel ignorando el left de 60px */
             left: 50% !important;
-            transform: translateX(-50%) !important;
-            width: 90% !important; /* Toma el 90% del ancho del celular */
+            transform: translateX(-50%) translateY(0) !important; /* Centrado y visible */
+            width: 90% !important;
             top: 10px !important;
-            padding: 15px !important;
+            padding: 15px 15px 10px 15px !important;
+            border-radius: 12px !important;
+            box-shadow: 0px 4px 15px rgba(0,0,0,0.4) !important;
+        }
+
+        /* CLASE ESTADO CERRADO (Persiana arriba) - Se aplica con JS */
+        #panel-contexto-SP.panel-cerrado-SP {
+            /* Lo subimos tanto que solo queda visible el botón toggle */
+            transform: translateX(-50%) translateY(-265px) !important; 
+            /* Descomenta la siguiente línea si quieres que sea ligeramente transparente al estar cerrado */
+            /* opacity: 0.8; */
         }
         
-        #panel-contexto-SP h2 {
-            font-size: 1.2rem !important;
+        #panel-contexto-SP h2 { font-size: 1.1rem !important; }
+        #panel-contexto-SP p { font-size: 13px !important; }
+        /* Carrusel más compacto en móvil */
+        #carrusel-SP img { height: 110px !important; }
+
+        /* Ajuste de controles de Leaflet para móvil */
+        .leaflet-top.leaflet-left { top: 70px !important; } /* Un poco más abajo cuando está abierto */
+        
+        /* Efecto en controles cuando el panel se cierra */
+        #panel-contexto-SP.panel-cerrado-SP ~ #map .leaflet-top.leaflet-left {
+            top: 20px !important; /* Vuelven a subir si el panel no molesta */
         }
 
-        /* Baja los botones de zoom de Leaflet para que el panel no los tape */
-        .leaflet-top.leaflet-left {
-            top: 280px !important; 
+        /* Mostrar y estilar el Botón de toggle en móvil */
+        #toggle-tab-SP {
+            display: flex;
+            position: absolute;
+            bottom: -35px; /* Pende por debajo del panel */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 70px;
+            height: 35px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 0 0 12px 12px; /* Redondeado solo abajo */
+            box-shadow: 0px 4px 10px rgba(0,0,0,0.3);
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 1001; /* Sobre el panel */
+            color: #2c7a3f;
+            font-size: 1.3rem;
+            transition: color 0.2s ease;
         }
-
-        /* Ajusta el tamaño de la fuente en el Splash Screen */
-        #splashScreen_SP h1 {
-            font-size: 1.8rem !important;
-            text-align: center;
-            padding: 0 10px;
-        }
+        #toggle-tab-SP:hover { color: #1e3f28; }
     }
 </style>
     </head>
@@ -80,12 +121,12 @@
     <p style="font-size: 1.2rem; z-index: 1;">Cargando experiencia interactiva...</p>
 </div>
 
-<!-- Panel de Contexto -->
-<div id="panel-contexto-SP" style="
+<!-- Panel de Contexto (Estructura SP con Toggle Móvil) -->
+<div id="panel-contexto-SP" class="panel-cerrado-SP" style="
     position: absolute; 
     top: 20px; 
-    left: 60px; /* Lo movemos un poco a la derecha para que no tape los botones de zoom */
-    z-index: 1000; /* Obliga al cuadro a flotar SOBRE el mapa */
+    left: 60px; 
+    z-index: 1000; 
     background: rgba(255, 255, 255, 0.95); 
     padding: 20px; 
     border-radius: 12px; 
@@ -93,20 +134,20 @@
     box-shadow: 0px 4px 15px rgba(0,0,0,0.3);
     font-family: Arial, sans-serif;">
     
+    <!-- BOTÓN TOGGLE (Tab) para móvil - Contiene la flecha -->
+    <div id="toggle-tab-SP">▼</div>
+    
     <h2 style="color: #2c7a3f; margin-top: 0;">Sendero Interpretativo</h2>
     <p style="font-size: 14px; color: #333; line-height: 1.5;">
         Bienvenido al mapa interactivo de Sigchos. Explora la riqueza del ecosistema haciendo clic en cada una de las paradas. 
         Este recorrido conecta el conocimiento ancestral con la conservación del páramo.
     </p>
     
-    <!-- Carrusel de fotos deslizable -->
-    <div style="display: flex; overflow-x: auto; gap: 10px; padding-bottom: 5px; margin-top: 15px;">
-        <!-- Foto 1 -->
+    <!-- Carrusel de fotos deslizable con ID -->
+    <div id="carrusel-SP" style="display: flex; overflow-x: auto; gap: 10px; padding-bottom: 5px; margin-top: 15px;">
         <img src="fotos/imagen8.jpeg" alt="Vista del sendero" style="height: 140px; width: auto; border-radius: 8px; flex-shrink: 0; object-fit: cover;">
-        <!-- Foto 2 -->
-        <img src="fotos/carrusel3.jpg" alt="Vista del ecosistema" style="height: 140px; width: auto; border-radius: 8px; flex-shrink: 0; object-fit: cover;">
-        <!-- Foto 3 -->
-        <img src="fotos/carrusel2.jpg" alt="Vista del recorrido" style="height: 140px; width: auto; border-radius: 8px; flex-shrink: 0; object-fit: cover;">
+        <img src="fotos/carrusel2.jpg" alt="Vista del ecosistema" style="height: 140px; width: auto; border-radius: 8px; flex-shrink: 0; object-fit: cover;">
+        <img src="fotos/carrusel3.jpg" alt="Vista del recorrido" style="height: 140px; width: auto; border-radius: 8px; flex-shrink: 0; object-fit: cover;">
     </div>
     
 </div>
@@ -622,6 +663,28 @@
         }, 1000); // Espera a que termine la transición CSS
     }, 2500); // Tiempo que dura la pantalla visible
 });
+// Lógica Lineal SP: Acordeón Responsivo del Panel de Contexto
+(function() {
+    // 1. Targetear los elementos necesarios
+    var panel_SP = document.getElementById('panel-contexto-SP');
+    var tab_SP = document.getElementById('toggle-tab-SP');
+
+    // 2. Definir la función de toggle (procedural)
+    function togglePanel_SP() {
+        // Intercambiar la clase 'panel-cerrado-SP'. CSS hará la transición.
+        panel_SP.classList.toggle('panel-cerrado-SP');
+        
+        // Rotar la flecha para indicar dirección de apertura/cierre
+        if (panel_SP.classList.contains('panel-cerrado-SP')) {
+            tab_SP.innerHTML = '▼'; // Panel cerrado -> flecha hacia abajo (indica abrir)
+        } else {
+            tab_SP.innerHTML = '▲'; // Panel abierto -> flecha hacia arriba (indica cerrar)
+        }
+    }
+
+    // 3. Escuchar el evento de clic en el tab
+    tab_SP.addEventListener('click', togglePanel_SP);
+})();
         </script>
                 
     </body>
