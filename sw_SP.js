@@ -22,6 +22,7 @@ const urlsToCache_SP = [
     './fotos/mirador2.jpg',
     './fotos/telescopio.jpg',
     './fotos/letrero.jpg',
+    './fotos/inti.jpg'
 ];
 
 // 1. Fase de Instalación: Carga inicial directa a la memoria del dispositivo

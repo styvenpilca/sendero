@@ -19,6 +19,18 @@
             padding: 0;
             margin: 0;
         }
+        /* Lógica Lineal SP: Transparencia para imágenes flotantes en el mapa */
+.fondo-transparente-SP {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+}
+
+/* Oculta la pequeña flecha blanca por defecto de Leaflet */
+.fondo-transparente-SP::before {
+    display: none !important; 
+}
         </style>
         <title></title>
         <style>
@@ -121,30 +133,12 @@
 @keyframes movimiento-ruta-SP {
     100% { stroke-dashoffset: -24; } /* Desplaza las líneas hacia adelante */
 }
+
+
 </style>
     </head>
     <body>
-        <!-- Botón GPS SP -->
-<button id="btn-gps-SP" style="
-    position: absolute;
-    bottom: 25px;
-    right: 15px;
-    z-index: 1000;
-    width: 45px;
-    height: 45px;
-    background-color: white;
-    border: none;
-    border-radius: 50%;
-    box-shadow: 0px 4px 10px rgba(0,0,0,0.3);
-    cursor: pointer;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 1.5rem;
-    color: #2c7a3f;
-">
-    📍
-</button>
+
 <!-- PANTALLA DE CARGA (Splash Screen) -->
 <div id="splashScreen_SP" style="
     position: fixed; 
@@ -226,8 +220,37 @@
         <script src="data/Sendero_5.js"></script>
         <script>
         var map = L.map('map', {
-            zoomControl:false, maxZoom:28, minZoom:1
-        }).fitBounds([[-0.7333629270259919,-78.93676258982966],[-0.7098990070241081,-78.90388383290393]]);
+    zoomControl:false, maxZoom:28, minZoom:1
+}).fitBounds([[-0.7333629270259919,-78.93676258982966],[-0.7098990070241081,-78.90388383290393]]);
+
+// Lógica Lineal SP: Escalado proporcional de imágenes según el zoom
+map.on('zoomend', function() {
+    var nivelZoom_SP = map.getZoom();
+    
+    // Seleccionamos directamente las etiquetas <img> de nuestros letreros flotantes
+    var imagenesLetreros_SP = document.querySelectorAll('.fondo-transparente-SP img'); 
+    
+    imagenesLetreros_SP.forEach(function(img) {
+        // Animación suave para la transición de tamaño
+        img.style.transition = 'width 0.3s ease, opacity 0.3s ease';
+        
+        if (nivelZoom_SP < 13) {
+            // Nivel de alejamiento máximo: se ocultan los letreros
+            img.style.opacity = '0';
+            img.style.pointerEvents = 'none';
+        } else if (nivelZoom_SP < 15) {
+            // Nivel intermedio: se reduce el tamaño matemático a 70px
+            img.style.width = '70px'; 
+            img.style.opacity = '1';
+            img.style.pointerEvents = 'auto';
+        } else {
+            // Nivel detallado (de cerca): tamaño original de diseño
+            img.style.width = '140px';
+            img.style.opacity = '1';
+            img.style.pointerEvents = 'auto';
+        }
+    });
+});
         var hash = new L.Hash(map);
         map.attributionControl.setPrefix('<a href="https://github.com/qgis2web/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a>');
         var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
@@ -404,19 +427,52 @@
         });
         bounds_group.addLayer(layer_ProvinciaCotopaxi_1);
         map.addLayer(layer_ProvinciaCotopaxi_1);
+        
         function pop_LodgeIntiAmanta_2(feature, layer) {
-            var popupContent = '<table>\
-                    <tr>\
-                        <th scope="row">Lugar</th>\
-                        <td class="visible-with-data" id="Lugar">' + (feature.properties['Lugar'] !== null ? autolinker.link(String(feature.properties['Lugar']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                </table>';
-            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
-			layer.on('popupopen', function(e) {
-				addClassToPopupIfMedia(content, e.popup);
-			});
-			layer.bindPopup(content, { maxHeight: 400 });
-        }
+    // 1. Tarjeta interactiva SOLO con la foto del Lodge (Letrero eliminado de aquí)
+    var popupContent_SP = `
+    <div style="text-align: center; font-family: sans-serif; min-width: 250px; max-width: 300px;">
+        <h3 style="color: #2c7a3f; margin: 0 0 10px 0;">Lodge Inti Amanta</h3>
+        
+        <div style="margin-bottom: 10px;">
+            <img src="fotos/inti.jpg" style="height: 160px; width: 100%; border-radius: 8px; object-fit: cover;" alt="Lodge">
+        </div>
+        
+        <p style="font-size: 14px; text-align: justify; color: #333; margin: 0;">
+            Punto de inicio y base del recorrido. Aquí puedes descansar, organizarte y aclimatarte antes de adentrarte en la conservación del páramo.
+        </p>
+        <hr style="border: 0; border-top: 1px solid #ddd; margin: 10px 0;">
+        <p style="font-size: 13px; text-align: left; margin: 0;"><b>Elevación:</b> 3200 m</p>
+    </div>
+    `;
+
+    // Amarra la tarjeta al hacer clic
+    layer.bindPopup(popupContent_SP, { maxHeight: 400, maxWidth: 320 });
+
+    // 2. Diseño del Letrero 3D Flotante
+    var imagenFlotante_SP = `
+        <!-- Habilitamos la interacción táctil directa -->
+        <div style="pointer-events: auto; cursor: pointer;">
+            
+            <!-- Lógica Lineal SP: Activación directa del visor modal usando la ruta estática -->
+            <img src="fotos/letrero.png" 
+                 onclick="document.getElementById('visor-SP').style.display='flex'; document.getElementById('img-visor-SP').src=this.src;"
+                 style="width: 140px; height: auto; filter: drop-shadow(0px 8px 6px rgba(0,0,0,0.6));">
+                 
+        </div>
+    `;
+
+    // 3. Lógica Lineal SP: Retraso forzado para ganar prioridad sobre QGIS
+    setTimeout(function() {
+        layer.bindTooltip(imagenFlotante_SP, {
+            permanent: true,
+            direction: "right", // Aparece al lado derecho
+            offset: [15, 0],    // Lo separa del punto verde
+            className: "fondo-transparente-SP",
+            opacity: 1          // Fuerza a que no sea transparente
+        }).openTooltip();
+    }, 100); 
+}
 
         function style_LodgeIntiAmanta_2_0() {
             return {
@@ -559,11 +615,47 @@ pointToLayer: function (feature, latlng) {
                     </tr>\
                 </table>';
             var content = removeEmptyRowsFromPopupContent(popupContent, feature);
-			layer.on('popupopen', function(e) {
-				addClassToPopupIfMedia(content, e.popup);
-			});
-			layer.bindPopup(content, { maxHeight: 400 });
-        }
+            layer.on('popupopen', function(e) {
+                addClassToPopupIfMedia(content, e.popup);
+            });
+            layer.bindPopup(content, { maxHeight: 400 });
+            
+    // Lógica Lineal SP: Asignación dinámica con control de errores
+
+    // 1. Extraemos el valor usando la columna correcta: 'Nombre'
+    var nombrePunto_SP = feature.properties['Nombre'];
+
+    // 2. Validación controlada para evitar un crash del script si el campo está vacío
+    var nombreLimpio_SP = "general"; // Retorno controlado por defecto
+    if (nombrePunto_SP !== null && nombrePunto_SP !== undefined) {
+        // Formateamos el texto directo sin llamar a funciones externas
+        nombreLimpio_SP = String(nombrePunto_SP).toLowerCase().replace(/ /g, '_');
+    }
+
+    // 3. Ensamblamos la ruta
+    var rutaLetrero_SP = "fotos/letrero_" + nombreLimpio_SP + ".png"; 
+
+    var cartelFlotante_SP = `
+        <div style="pointer-events: auto; cursor: pointer;">
+            <!-- El evento onclick inyecta la ruta de la imagen directamente al visor y lo enciende -->
+            <img src="${rutaLetrero_SP}" 
+                 onerror="this.src='fotos/letrero.png'" 
+                 onclick="document.getElementById('visor-SP').style.display='flex'; document.getElementById('img-visor-SP').src=this.src;"
+                 style="width: 140px; height: auto; filter: drop-shadow(0px 8px 6px rgba(0,0,0,0.6));">
+        </div>
+    `;
+
+    // 4. Retraso forzado para inyectar en el mapa
+    setTimeout(function() {
+        layer.bindTooltip(cartelFlotante_SP, {
+            permanent: true,
+            direction: "right",
+            offset: [15, 0],
+            className: "fondo-transparente-SP",
+            opacity: 1
+        }).openTooltip();
+    }, 100);
+}
 
         function style_puntos_interactivos_4_0() {
             return {
@@ -804,5 +896,12 @@ map.on('locationerror', function(e) {
         });
     }
 </script> 
+<!-- Lógica Lineal SP: Visor de imágenes a pantalla completa -->
+<div id="visor-SP" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); z-index: 9999; justify-content: center; align-items: center;">
+    <!-- Botón directo de cerrar -->
+    <div onclick="document.getElementById('visor-SP').style.display='none'" style="position: absolute; top: 20px; right: 30px; color: white; font-size: 40px; cursor: pointer; font-weight: bold;">&times;</div>
+    <!-- Imagen dinámica que cambiará de fuente al hacer clic -->
+    <img id="img-visor-SP" src="" style="max-width: 90%; max-height: 85%; border-radius: 8px; box-shadow: 0px 10px 25px rgba(0,0,0,0.5);">
+</div>
     </body>
 </html>
