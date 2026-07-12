@@ -451,14 +451,11 @@ map.on('zoomend', function() {
 
     // 2. Diseño del Letrero 3D Flotante
     var imagenFlotante_SP = `
-        <!-- Habilitamos la interacción táctil directa -->
         <div style="pointer-events: auto; cursor: pointer;">
-            
-            <!-- Lógica Lineal SP: Activación directa del visor modal usando la ruta estática -->
+            <!-- Reducción de ancho a 100px -->
             <img src="fotos/letrero.png" 
                  onclick="document.getElementById('visor-SP').style.display='flex'; document.getElementById('img-visor-SP').src=this.src;"
-                 style="width: 140px; height: auto; filter: drop-shadow(0px 8px 6px rgba(0,0,0,0.6));">
-                 
+                 style="width: 100px; height: auto; filter: drop-shadow(0px 8px 6px rgba(0,0,0,0.6));">
         </div>
     `;
 
@@ -637,11 +634,11 @@ pointToLayer: function (feature, latlng) {
 
     var cartelFlotante_SP = `
         <div style="pointer-events: auto; cursor: pointer;">
-            <!-- El evento onclick inyecta la ruta de la imagen directamente al visor y lo enciende -->
+            <!-- Reducción de ancho a 100px -->
             <img src="${rutaLetrero_SP}" 
                  onerror="this.src='fotos/letrero.png'" 
                  onclick="document.getElementById('visor-SP').style.display='flex'; document.getElementById('img-visor-SP').src=this.src;"
-                 style="width: 140px; height: auto; filter: drop-shadow(0px 8px 6px rgba(0,0,0,0.6));">
+                 style="width: 100px; height: auto; filter: drop-shadow(0px 8px 6px rgba(0,0,0,0.6));">
         </div>
     `;
 
