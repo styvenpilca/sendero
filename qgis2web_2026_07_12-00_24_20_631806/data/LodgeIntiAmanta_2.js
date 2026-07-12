@@ -1,0 +1,1 @@
+var json_LodgeIntiAmanta_2 = {"type":"FeatureCollection","name":"LodgeIntiAmanta_2","crs":{"type":"name","properties":{"name":"urn:ogc:def:crs:OGC:1.3:CRS84"}},"features":[{"type":"Feature","properties":{"Lugar":"Lodge"},"geometry":{"type":"Point","coordinates":[-78.911761233163318,-0.714306155442202]}},{"type":"Feature","properties":{"Lugar":null},"geometry":null}]}
