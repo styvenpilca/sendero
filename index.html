@@ -3,8 +3,7 @@
     <head>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
-        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />        <meta name="mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-capable" content="yes">
         <link rel="stylesheet" href="css/leaflet.css">
         <link rel="stylesheet" href="css/L.Control.Layers.Tree.css">
@@ -22,6 +21,35 @@
         }
         </style>
         <title></title>
+        <style>
+    /* Diseño Responsivo SP */
+    @media (max-width: 768px) {
+        #panel-contexto-SP {
+            /* Centra el panel ignorando el left de 60px */
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+            width: 90% !important; /* Toma el 90% del ancho del celular */
+            top: 10px !important;
+            padding: 15px !important;
+        }
+        
+        #panel-contexto-SP h2 {
+            font-size: 1.2rem !important;
+        }
+
+        /* Baja los botones de zoom de Leaflet para que el panel no los tape */
+        .leaflet-top.leaflet-left {
+            top: 280px !important; 
+        }
+
+        /* Ajusta el tamaño de la fuente en el Splash Screen */
+        #splashScreen_SP h1 {
+            font-size: 1.8rem !important;
+            text-align: center;
+            padding: 0 10px;
+        }
+    }
+</style>
     </head>
     <body>
 <!-- PANTALLA DE CARGA (Splash Screen) -->
