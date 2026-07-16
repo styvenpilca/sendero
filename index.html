@@ -223,6 +223,7 @@
     zoomControl:false, maxZoom:28, minZoom:1
 }).fitBounds([[-0.7333629270259919,-78.93676258982966],[-0.7098990070241081,-78.90388383290393]]);
 
+
 // Lógica Lineal SP: Escalado proporcional de imágenes según el zoom
 map.on('zoomend', function() {
     var nivelZoom_SP = map.getZoom();
@@ -434,8 +435,20 @@ map.on('zoomend', function() {
     <div style="text-align: center; font-family: sans-serif; min-width: 250px; max-width: 300px;">
         <h3 style="color: #2c7a3f; margin: 0 0 10px 0;">Lodge Inti Amanta</h3>
         
-        <div style="margin-bottom: 10px;">
-            <img src="fotos/inti.jpg" style="height: 160px; width: 100%; border-radius: 8px; object-fit: cover;" alt="Lodge">
+        <!-- Contenedor lineal deslizable para multimedia -->
+        <div style="display: flex; overflow-x: auto; gap: 8px; padding-bottom: 8px; margin-bottom: 10px;">
+            
+            <!-- 1. Imagen conectada al Visor de Pantalla Completa SP -->
+            <img src="fotos/inti.jpg" 
+                 onclick="document.getElementById('visor-SP').style.display='flex'; document.getElementById('img-visor-SP').src=this.src;"
+                 style="height: 160px; width: auto; border-radius: 8px; flex-shrink: 0; object-fit: cover; cursor: pointer;">
+            
+            <!-- 2. Video HTML5 con controles nativos (El botón de pantalla completa ya viene incluido) -->
+            <video controls style="height: 160px; width: auto; border-radius: 8px; flex-shrink: 0; background: #000;">
+                <source src="fotos/video_lodge.mp4" type="video/mp4">
+                Tu navegador no soporta videos.
+            </video>
+            
         </div>
         
         <p style="font-size: 14px; text-align: justify; color: #333; margin: 0;">
@@ -588,7 +601,31 @@ pointToLayer: function (feature, latlng) {
         bounds_group.addLayer(layer_CantnSigchos_3);
         map.addLayer(layer_CantnSigchos_3);
         function pop_puntos_interactivos_4(feature, layer) {
-            var popupContent = '<table>\
+            // 1. Lógica Lineal SP: Extraer y limpiar el nombre para buscar los archivos
+    var nombrePunto_SP = feature.properties['Nombre'];
+    var nombreLimpio_SP = "general"; 
+    if (nombrePunto_SP !== null && nombrePunto_SP !== undefined) {
+        nombreLimpio_SP = String(nombrePunto_SP).toLowerCase().replace(/ /g, '_');
+    }
+
+    // 2. Construir la Galería Multimedia SP (Carrusel estricto y ocultamiento seguro)
+    var galeria_SP = '<div style="width: 100%; overflow-x: auto; white-space: nowrap; padding-bottom: 8px; margin-bottom: 10px;">\
+        \
+        <!-- Imágenes con ocultamiento automático si no existen -->\
+        <img src="fotos/' + nombreLimpio_SP + '_1.jpg" onerror="this.style.display=\'none\'" onclick="document.getElementById(\'visor-SP\').style.display=\'flex\'; document.getElementById(\'img-visor-SP\').src=this.src;" style="display: inline-block; height: 140px; width: auto; border-radius: 8px; margin-right: 8px; object-fit: cover; cursor: pointer;">\
+        <img src="fotos/' + nombreLimpio_SP + '_2.jpg" onerror="this.style.display=\'none\'" onclick="document.getElementById(\'visor-SP\').style.display=\'flex\'; document.getElementById(\'img-visor-SP\').src=this.src;" style="display: inline-block; height: 140px; width: auto; border-radius: 8px; margin-right: 8px; object-fit: cover; cursor: pointer;">\
+        <img src="fotos/' + nombreLimpio_SP + '_3.jpg" onerror="this.style.display=\'none\'" onclick="document.getElementById(\'visor-SP\').style.display=\'flex\'; document.getElementById(\'img-visor-SP\').src=this.src;" style="display: inline-block; height: 140px; width: auto; border-radius: 8px; margin-right: 8px; object-fit: cover; cursor: pointer;">\
+        <img src="fotos/' + nombreLimpio_SP + '_4.jpg" onerror="this.style.display=\'none\'" onclick="document.getElementById(\'visor-SP\').style.display=\'flex\'; document.getElementById(\'img-visor-SP\').src=this.src;" style="display: inline-block; height: 140px; width: auto; border-radius: 8px; margin-right: 8px; object-fit: cover; cursor: pointer;">\
+        \
+        <!-- Video con lógica inversa: Oculto por defecto, se activa solo si carga (onloadeddata) -->\
+        <video controls style="display: none; height: 140px; width: auto; border-radius: 8px; margin-right: 8px; background: #000; vertical-align: top;" onloadeddata="this.style.display=\'inline-block\'">\
+            <source src="fotos/video_' + nombreLimpio_SP + '.mp4" type="video/mp4">\
+        </video>\
+        \
+    </div>';
+
+    // 3. Unir la galería con tu tabla (Fila 'Imagen' antigua eliminada para evitar duplicados)
+    var popupContent = galeria_SP + '<table>\
                     <tr>\
                         <td colspan="2">' + (feature.properties['Nombre'] !== null ? autolinker.link(String(feature.properties['Nombre']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
                     </tr>\
@@ -606,9 +643,6 @@ pointToLayer: function (feature, latlng) {
                     </tr>\
                     <tr>\
                         <td colspan="2"><strong>Descrip</strong><br />' + (feature.properties['Descrip'] !== null ? autolinker.link(String(feature.properties['Descrip']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <td colspan="2"><strong>Imagen</strong><br />' + (feature.properties['Imagen'] !== null ? autolinker.link(String(feature.properties['Imagen']).replace(/'/g, '\'').toLocaleString()) : '') + '</td>\
                     </tr>\
                 </table>';
             var content = removeEmptyRowsFromPopupContent(popupContent, feature);
@@ -900,5 +934,31 @@ map.on('locationerror', function(e) {
     <!-- Imagen dinámica que cambiará de fuente al hacer clic -->
     <img id="img-visor-SP" src="" style="max-width: 90%; max-height: 85%; border-radius: 8px; box-shadow: 0px 10px 25px rgba(0,0,0,0.5);">
 </div>
+
+<!-- Lógica Lineal SP: Motor de Audio Ambiental -->
+<audio id="audio-fondo-SP" loop>
+    <source src="fotos/sonido_paramo.mp3" type="audio/mpeg">
+</audio>
+<!-- Botón flotante para controlar el audio -->
+<div id="btn-audio-SP" style="position: fixed; bottom: 20px; left: 20px; background: #2c7a3f; color: white; padding: 10px 15px; border-radius: 50px; z-index: 9999; cursor: pointer; font-family: sans-serif; box-shadow: 0 4px 6px rgba(0,0,0,0.3);" onclick="controlarAudio_SP()">
+    🔊 Activar Sonido
+</div>
+
+<script>
+    function controlarAudio_SP() {
+        var motorAudio = document.getElementById('audio-fondo-SP');
+        var botonAudio = document.getElementById('btn-audio-SP');
+        
+        if (motorAudio.paused) {
+            motorAudio.play();
+            botonAudio.innerHTML = "🔇 Silenciar";
+            botonAudio.style.background = "#d9534f"; // Cambia a rojo
+        } else {
+            motorAudio.pause();
+            botonAudio.innerHTML = "🔊 Activar Sonido";
+            botonAudio.style.background = "#2c7a3f"; // Vuelve a verde
+        }
+    }
+</script>
     </body>
 </html>
