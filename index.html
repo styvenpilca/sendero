@@ -134,7 +134,24 @@
     100% { stroke-dashoffset: -24; } /* Desplaza las líneas hacia adelante */
 }
 
-
+/* Lógica Lineal SP: Estilo para los indicadores de distancia */
+.etiqueta-distancia-SP {
+    background: rgba(44, 122, 63, 0.9) !important;
+    color: white !important;
+    padding: 4px 10px !important;
+    border-radius: 20px !important;
+    font-weight: bold !important;
+    font-size: 13px !important;
+    box-shadow: 0px 4px 6px rgba(0,0,0,0.4) !important;
+    border: 2px solid white !important;
+    text-align: center;
+}
+/* Quitar el fondo blanco por defecto de Leaflet */
+.fondo-transparente-distancia-SP {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
 </style>
     </head>
     <body>
@@ -223,6 +240,49 @@
     zoomControl:false, maxZoom:28, minZoom:1
 }).fitBounds([[-0.7333629270259919,-78.93676258982966],[-0.7098990070241081,-78.90388383290393]]);
 
+// Lógica Lineal SP: Inyección de distancias flotantes en el sendero (Puntos Medios Calculados)
+
+var tramosDistancia_SP = [
+    // Tramo 1: Lodge Inti Amanta -> Yo Cuido el Páramo
+    [-0.715496, -78.913808, "245,0 m"], 
+    
+    // Tramo 2: Yo Cuido el Páramo -> Ciclo de Vida
+    [-0.715549, -78.917943, "655,1 m"],
+    
+    // Tramo 3: Ciclo de Vida -> Mirador Yaku Kawsay
+    [-0.716700, -78.922905, "508,0 m"],
+    
+    // Tramo 4: Mirador Yaku Kawsay -> Aromas Andinos
+    [-0.720451, -78.925502, "468,8 m"],
+    
+    // Tramo 5: Aromas Andinos -> La Esponja Natural
+    [-0.724773, -78.927777, "551,4 m"],
+    
+    // Tramo 6: La Esponja Natural -> Churo de Gualaya
+    [-0.728598, -78.931530, "571,7 m"]
+];
+
+// Bucle matemático para dibujar cada cartel en el mapa
+tramosDistancia_SP.forEach(function(tramo) {
+    var coordenada_SP = [tramo[0], tramo[1]];
+    var texto_SP = tramo[2];
+
+    // Creamos un ancla invisible en esa coordenada exacta
+    var anclaInvisible_SP = L.marker(coordenada_SP, {
+        icon: L.divIcon({ className: 'icono-invisible-SP', iconSize: [0, 0] })
+    }).addTo(map);
+
+    // Ensamblamos el diseño HTML
+    var cartelDistancia_SP = `<div class="etiqueta-distancia-SP">${texto_SP}</div>`;
+
+    // Lo forzamos a estar permanentemente abierto
+    anclaInvisible_SP.bindTooltip(cartelDistancia_SP, {
+        permanent: true,
+        direction: "center",
+        className: "fondo-transparente-distancia-SP",
+        opacity: 1
+    }).openTooltip();
+});
 
 // Lógica Lineal SP: Escalado proporcional de imágenes según el zoom
 map.on('zoomend', function() {
@@ -429,7 +489,7 @@ map.on('zoomend', function() {
         bounds_group.addLayer(layer_ProvinciaCotopaxi_1);
         map.addLayer(layer_ProvinciaCotopaxi_1);
         
-        function pop_LodgeIntiAmanta_2(feature, layer) {
+       function pop_LodgeIntiAmanta_2(feature, layer) {
     // 1. Tarjeta interactiva SOLO con la foto del Lodge (Letrero eliminado de aquí)
     var popupContent_SP = `
     <div style="text-align: center; font-family: sans-serif; min-width: 250px; max-width: 300px;">
@@ -437,11 +497,6 @@ map.on('zoomend', function() {
         
         <!-- Contenedor lineal deslizable para multimedia -->
         <div style="display: flex; overflow-x: auto; gap: 8px; padding-bottom: 8px; margin-bottom: 10px;">
-            
-            <!-- 1. Imagen conectada al Visor de Pantalla Completa SP -->
-            <img src="fotos/inti.jpg" 
-                 onclick="document.getElementById('visor-SP').style.display='flex'; document.getElementById('img-visor-SP').src=this.src;"
-                 style="height: 160px; width: auto; border-radius: 8px; flex-shrink: 0; object-fit: cover; cursor: pointer;">
             
             <!-- 2. Video HTML5 con controles nativos (El botón de pantalla completa ya viene incluido) -->
             <video controls style="height: 160px; width: auto; border-radius: 8px; flex-shrink: 0; background: #000;">
@@ -461,6 +516,26 @@ map.on('zoomend', function() {
 
     // Amarra la tarjeta al hacer clic
     layer.bindPopup(popupContent_SP, { maxHeight: 400, maxWidth: 320 });
+
+    // -------------------------------------------------------------------------
+    // NUEVO: Lógica Lineal SP - Disparador de Pantalla de Carga para el Lodge
+    // -------------------------------------------------------------------------
+    layer.on('click', function(e) {
+        var tituloPantalla = "Lodge Inti Amanta";
+        var informacionIngresada_SP = "BIENVENIDOS AL LODGE. Un refugio andino para descansar, disfrutar de la naturaleza y vivir experiencias auténticas: hospedaje, gastronomía local y actividades al aire libre, en armonía con el entorno. Practicamos y promovemos el turismo sostenible.";
+
+        document.getElementById('titulo-transicion-SP').innerText = tituloPantalla;
+        document.getElementById('texto-transicion-SP').innerText = informacionIngresada_SP;
+        
+        var pantallaCarga_SP = document.getElementById('transicion-punto-SP');
+        pantallaCarga_SP.style.backgroundImage = "url('fotos/carga_lodge_inti_amanta.jpg')";
+        
+        pantallaCarga_SP.style.display = 'flex';
+        setTimeout(function() {
+            pantallaCarga_SP.style.display = 'none';
+        }, 3500); 
+    });
+    // -------------------------------------------------------------------------
 
     // 2. Diseño del Letrero 3D Flotante
     var imagenFlotante_SP = `
@@ -483,7 +558,6 @@ map.on('zoomend', function() {
         }).openTooltip();
     }, 100); 
 }
-
         function style_LodgeIntiAmanta_2_0() {
             return {
                 pane: 'pane_LodgeIntiAmanta_2',
@@ -601,7 +675,7 @@ pointToLayer: function (feature, latlng) {
         bounds_group.addLayer(layer_CantnSigchos_3);
         map.addLayer(layer_CantnSigchos_3);
         function pop_puntos_interactivos_4(feature, layer) {
-            // 1. Lógica Lineal SP: Extraer y limpiar el nombre para buscar los archivos
+    // 1. Lógica Lineal SP: Extraer y limpiar el nombre para buscar los archivos
     var nombrePunto_SP = feature.properties['Nombre'];
     var nombreLimpio_SP = "general"; 
     if (nombrePunto_SP !== null && nombrePunto_SP !== undefined) {
@@ -650,7 +724,53 @@ pointToLayer: function (feature, latlng) {
                 addClassToPopupIfMedia(content, e.popup);
             });
             layer.bindPopup(content, { maxHeight: 400 });
-            
+
+    // -------------------------------------------------------------------------
+    // NUEVO: Lógica Lineal SP - Disparador de Pantalla de Carga Dinámica
+    // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+    // NUEVO: Lógica Lineal SP - Pantalla de Carga con Textos Diferentes
+    // -------------------------------------------------------------------------
+    layer.on('click', function(e) {
+        var tituloPantalla = feature.properties['Nombre'];
+        if (tituloPantalla === null || tituloPantalla === undefined) { 
+            tituloPantalla = "Parada Interactiva"; 
+        }
+        
+        // 1. Diccionario SP: Escribe aquí la información exacta para cada punto
+        var textosPersonalizados_SP = {
+            "yo_cuido_el_paramo": "RECORRIDO POR EL PÁRAMO ANDINO. A lo largo de esta ruta encontrarás paisajes característicos del páramo, con su vegetación nativa y especies representativas de flora y fauna.",
+            "ciclo_de_vida": "En el páramo, nada se pierde: todo se transforma. Consumidores y descomponedores trabajan juntos para convertir los restos orgánicos en nutrientes que regresan al suelo",
+            "mirador_yaku_kawsay": "Mirador Yaku Kawsay que significa agua de vida, identifica un punto turístico de observación natural ubicado en la zona de la montaña. Su nombre resalta el valor del paisaje, incitando a los visitantes a observar el entorno andino desde un punto de vista privilegiad",
+            "aromas_andinos": "Aromas Andinos es un espacio interpretativo que invita a descubrir su riqueza natural, destacando algunas de sus principales especies de flora y fauna.",
+            "la_esponja_natural": "Paja de Páramo (stipa ichu) destacando su nombre común y científico, sus usos tradicionales en la medicina ancestral y así promover el conocimiento y la conservación de esta especie característica de los ecosistemas andinos.",
+            "churo_de_gualaya": "El Churo de Gualaya es un atractivo natural e histórico que conserva vestigios de antiguas culturas andinas. Sus paisajes naturales lo convierten en un lugar ideal para disfrutar de la naturaleza y conocer su valor patrimonial."
+        };
+
+        // 2. Buscamos el texto correspondiente en el diccionario usando el nombre limpio
+        var informacionIngresada_SP = textosPersonalizados_SP[nombreLimpio_SP];
+        
+        // 3. Si por algún error el punto no está en el diccionario, mostramos un texto por defecto
+        if (!informacionIngresada_SP) {
+            informacionIngresada_SP = "Estamos preparando los datos topográficos para tu recorrido en " + tituloPantalla + "...";
+        }
+
+        // 4. Mandamos los textos y la imagen al HTML
+        document.getElementById('titulo-transicion-SP').innerText = tituloPantalla;
+        document.getElementById('texto-transicion-SP').innerText = informacionIngresada_SP;
+        
+        var pantallaCarga_SP = document.getElementById('transicion-punto-SP');
+        pantallaCarga_SP.style.backgroundImage = "url('fotos/carga_" + nombreLimpio_SP + ".jpg')";
+        
+        // 5. Encendemos y apagamos la pantalla
+        pantallaCarga_SP.style.display = 'flex';
+        setTimeout(function() {
+            pantallaCarga_SP.style.display = 'none';
+        }, 6500); // 1.5 segundos de carga
+    });
+    // -------------------------------------------------------------------------
+    // -------------------------------------------------------------------------
+
     // Lógica Lineal SP: Asignación dinámica con control de errores
 
     // 1. Extraemos el valor usando la columna correcta: 'Nombre'
@@ -927,6 +1047,17 @@ map.on('locationerror', function(e) {
         });
     }
 </script> 
+
+<!-- Lógica Lineal SP: Pantalla de Transición por Punto -->
+<div id="transicion-punto-SP" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 99999; background-size: cover; background-position: center; flex-direction: column; justify-content: center; align-items: center; text-align: center; color: white;">
+    
+    <div style="background: rgba(0,0,0,0.7); padding: 40px; border-radius: 15px; max-width: 85%; box-shadow: 0px 10px 30px rgba(0,0,0,0.8);">
+        <h2 id="titulo-transicion-SP" style="margin-bottom: 10px; font-size: 32px; font-weight: bold; color: #4CAF50;">Cargando...</h2>
+        <p id="texto-transicion-SP" style="font-size: 18px; line-height: 1.6; margin-bottom: 25px;"></p>
+        <div style="margin: 0 auto; width: 50px; height: 50px; border: 5px solid rgba(255,255,255,0.3); border-top: 5px solid #4CAF50; border-radius: 50%; animation: girar-SP 1s linear infinite;"></div>
+    </div>
+</div>
+
 <!-- Lógica Lineal SP: Visor de imágenes a pantalla completa -->
 <div id="visor-SP" style="display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); z-index: 9999; justify-content: center; align-items: center;">
     <!-- Botón directo de cerrar -->
